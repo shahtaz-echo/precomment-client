@@ -2,41 +2,23 @@ import { apiSlice } from "../api/apiSlice";
 
 export const tenantApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    // createTenant: builder.mutation({
-    //   query: (data) => {
-    //     const { bodyData, token } = data;
-    //     return {
-    //       url: `orders`,
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json;charset=UTF-8",
-    //         Authorization: `Bearer ${token}`,
-    //       },
-    //       body: bodyData,
-    //     };
-    //   },
-    //   invalidatesTags: ["order", "myProfile"],
-    // }),
+    createTenant: builder.mutation({
+      query: (payload) => {
+        return {
+          url: "/tenants/create",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            // Authorization: `Bearer ${token}`,
+          },
+          body: payload,
+        };
+      },
+      invalidatesTags: ["tenants"],
+    }),
 
-    // updateOrder: builder.mutation({
-    //   query: (data) => {
-    //     const { id, bodyData, token } = data;
-    //     return {
-    //       url: `orders/${id}`,
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json;charset=UTF-8",
-    //         Authorization: `Bearer ${token}`,
-    //       },
-    //       body: bodyData,
-    //     };
-    //   },
-    //   invalidatesTags: ["order"],
-    // }),
-
-    
     tenantList: builder.query({
-      query: ({ page, page_size, search}) => {
+      query: ({ page, page_size, search }) => {
         let url = "/tenants/";
         const queryParams = new URLSearchParams();
 
@@ -65,32 +47,49 @@ export const tenantApiSlice = apiSlice.injectEndpoints({
           url: `/tenants/${tenant_id}`,
           method: "GET",
           headers: {
-              "Content-Type": "application/json;charset=UTF-8",
-              // Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json;charset=UTF-8",
+            // Authorization: `Bearer ${token}`,
           },
         };
       },
       providesTags: ["tenant-details"],
     }),
 
-    // deleteOrder: builder.mutation({
-    //   query: (data) => {
-    //     const { id, token } = data;
-    //     return {
-    //       url: `/orders/${id}`,
-    //       method: "DELETE",
-    //       headers: {
-    //         Authorization: `Bearer ${token}`,
-    //         "Content-Type": "application/json;charset=UTF-8",
-    //       },
-    //     };
-    //   },
-    //   invalidatesTags: ["order"],
-    // }),
+    updateTenant: builder.mutation({
+      query: ({ tenant_id, payload }) => {
+        return {
+          url: `/tenants/update/${tenant_id}`,
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            // Authorization: `Bearer ${token}`,
+          },
+          body: payload,
+        };
+      },
+      invalidatesTags: ["tenants", "tenant-details"],
+    }),
+
+    deleteTenant: builder.mutation({
+      query: ({ tenant_id }) => {
+        return {
+          url: `/tenants/delete/${tenant_id}`,
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json;charset=UTF-8",
+            // Authorization: `Bearer ${token}`,
+          },
+        };
+      },
+      invalidatesTags: ["tenants"],
+    }),
   }),
 });
 
 export const {
+  useCreateTenantMutation,
   useTenantListQuery,
   useTenantDetailsQuery,
+  useUpdateTenantMutation,
+  useDeleteTenantMutation,
 } = tenantApiSlice;

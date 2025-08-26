@@ -1,129 +1,233 @@
 import { useFaqLinkListQuery } from "@/features/faqs/faqApiSlice";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import React, { useState } from "react";
-import moment from "moment";
-import { BookOpen, ExternalLink, Plus, Trash2 } from "lucide-react";
-import { Link } from "react-router";
-import DeleteDialog from "@/components/dialog/delete-dialog";
+import React, { useState, useCallback, useMemo } from "react";
+
+import { BookOpen, Plus, Search } from "lucide-react";
+
+import FAQCard from "./faq-card";
+import CreateFAQLinkDialog from "./create-faq-link";
+import VectorSearchDrawer from "./faq-drawer";
 
 const FAQLinks = ({ tenant_id }) => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState(null);
+  const [faqPages, setFaqPages] = useState({});
+  const [faqSearches, setFaqSearches] = useState({});
+
   const PAGE_SIZE = 10;
 
-  const { data, isLoading, isError } = useFaqLinkListQuery(
-    { tenant_id, page, page_size: PAGE_SIZE, search },
-    { refetchOnReconnect: true, refetchOnMountOrArgChange: false }
+  // Memoize query parameters to prevent unnecessary re-renders
+  const linkQueryParams = useMemo(
+    () => ({
+      tenant_id,
+      page,
+      page_size: PAGE_SIZE,
+      search,
+    }),
+    [tenant_id, page, search]
   );
 
-  const faqLinks = data?.data || [];
-  const meta = data?.meta || {};
+  // Fetch FAQ links
+  const {
+    data: faqLinksData,
+    isLoading: isLinksLoading,
+    isError: isLinksError,
+    refetch: refetchLinks,
+  } = useFaqLinkListQuery(linkQueryParams, {
+    refetchOnReconnect: true,
+    refetchOnMountOrArgChange: false,
+  });
 
-  const handleDelete = (id) => {
-    console.log("Item deleted!");
-  };
+  const faqLinks = faqLinksData?.data || [];
+  const meta = faqLinksData?.meta || {};
 
-  // maintain individual open state per card
-  const [openStates, setOpenStates] = useState({});
+  // Callbacks to prevent unnecessary re-renders
+  const toggleExpand = useCallback((id) => {
+    setExpanded((current) => {
+      if (current === id) {
+        // Reset FAQ search when closing
+        setFaqSearches((prev) => ({ ...prev, [id]: "" }));
+        return null; // collapse
+      } else {
+        // Reset FAQ page and search when expanding new card
+        setFaqPages((prev) => ({ ...prev, [id]: 1 }));
+        setFaqSearches((prev) => ({ ...prev, [id]: "" }));
+        return id; // expand new
+      }
+    });
+  }, []);
 
-  const toggleDialog = (id, value) => {
-    setOpenStates((prev) => ({ ...prev, [id]: value }));
-  };
+  const handleSearchChange = useCallback((e) => {
+    const value = e.target.value;
+    setSearch(value);
+    setPage(1); // Reset to first page when searching
+    // Collapse expanded cards when main search changes
+    setExpanded(null);
+  }, []);
+
+  const handleFaqSearchChange = useCallback((faqLinkId, value) => {
+    setFaqSearches((prev) => ({ ...prev, [faqLinkId]: value }));
+    setFaqPages((prev) => ({ ...prev, [faqLinkId]: 1 })); // Reset page when searching FAQs
+  }, []);
+
+  const handlePageChange = useCallback((newPage) => {
+    setPage(Math.max(1, newPage));
+  }, []);
+
+  const handleFaqPageChange = useCallback((faqLinkId, newPage) => {
+    setFaqPages((prev) => ({
+      ...prev,
+      [faqLinkId]: Math.max(1, newPage),
+    }));
+  }, []);
+
+  // Loading component
+  const LoadingState = () => (
+    <div className="space-y-6">
+      <div className="flx justify-between items-center">
+        <h2 className="text-2xl font-bold">FAQ Links</h2>
+        <CreateFAQLinkDialog />
+      </div>
+      <div className="flx items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        <span className="ml-2 text-muted-foreground">Loading FAQ Links...</span>
+      </div>
+    </div>
+  );
+
+  // Error component
+  const ErrorState = () => (
+    <div className="space-y-6">
+      <div className="flx justify-between items-center">
+        <h2 className="text-2xl font-bold">FAQ Links</h2>
+        <CreateFAQLinkDialog />
+      </div>
+      <div className="text-center py-8">
+        <p className="text-red-500 mb-2">Failed to load FAQ Links.</p>
+        <Button variant="outline" onClick={refetchLinks}>
+          Try Again
+        </Button>
+      </div>
+    </div>
+  );
+
+  // Render loading state
+  if (isLinksLoading) {
+    return <LoadingState />;
+  }
+
+  // Render error state
+  if (isLinksError) {
+    return <ErrorState />;
+  }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="flx justify-between items-center">
+        <h2 className="text-2xl font-bold">FAQ Links</h2>
+        <CreateFAQLinkDialog />
+      </div>
+
       {/* Search */}
-      <div className="flbx">
-        <h2>Faq Links</h2>
-        <Button>
-          <Plus size={14} />
-          <span className="pr-1">Faq Link</span>
-        </Button>
-      </div>
-      <div className="flex w-full max-w-sm">
-        <Input
-          placeholder="Search FAQs..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="flbx gap-2">
+        <div className="flx w-full max-w-sm relative">
+          <Search
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+            size={16}
+          />
+          <Input
+            placeholder="Search FAQ Links..."
+            value={search}
+            onChange={handleSearchChange}
+            className="pl-10"
+          />
+        </div>
+        <VectorSearchDrawer/>
       </div>
 
-      {/* FAQ Cards */}
+      {/* Empty state */}
+      {faqLinks.length === 0 && (
+        <div className="text-center h-[60vh] center flex-col">
+          <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" strokeWidth={1.5} />
+          <h3 className="text-lg font-medium mb-2">No FAQ Links found</h3>
+          <p className="text-muted-foreground mb-4">
+            {search
+              ? "Try adjusting your search criteria"
+              : "Create your first FAQ link to get started"}
+          </p>
+          {search && (
+            <Button variant="outline" onClick={() => setSearch("")}>
+              Clear Search
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Cards */}
       <div className="grid grid-cols-1 gap-6">
-        {isLoading && <p>Loading FAQs...</p>}
-        {isError && <p className="text-red-500">Failed to load FAQs.</p>}
-
-        {!isLoading && faqLinks.length === 0 && (
-          <p className="col-span-full text-muted-foreground">No FAQs found.</p>
-        )}
-
-        {faqLinks.map((faq) => (
-          <Card
-            key={faq.id}
-            className={`rounded-2xl shadow-sm ${faq.is_active ? "opacity-60" : ""}`}
-          >
-            <CardHeader>
-              <CardTitle className="text-lg">{faq.name}</CardTitle>
-              <p>Created at {moment(faq.created_at).format("DD MMM YYYY")}</p>
-            </CardHeader>
-            <CardContent>
-              <p>{faq.description || "No description provided."}</p>
-
-              <div className="flbx mt-4 justify-between items-center">
-                <div className="flx gap-6">
-                  <Link
-                    href={`/faqs/${faq.id}`}
-                    className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-                  >
-                    <BookOpen size={16} />
-                    See FAQs
-                  </Link>
-                  <a
-                    href={faq.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-                  >
-                    <ExternalLink size={16} />
-                    Visit Link
-                  </a>
-                </div>
-
-                <DeleteDialog
-                  onConfirm={() => handleDelete(faq.id)}
-                  trigger={
-                    <button className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-                      <Trash2 size={16} />
-                      Delete Link
-                    </button>
-                  }
-                  title="Delete FAQ Link"
-                  description="This will permanently remove the item."
-                  open={openStates[faq.id] || false}
-                  setOpen={(value) => toggleDialog(faq.id, value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
+        {faqLinks.map((faqLink) => (
+          <FAQCard
+            key={faqLink.id}
+            faqLink={faqLink}
+            isExpanded={expanded === faqLink.id}
+            currentPage={faqPages[faqLink.id] || 1}
+            faqSearch={faqSearches[faqLink.id] || ""}
+            pageSize={PAGE_SIZE}
+            onToggleExpand={toggleExpand}
+            onFaqPageChange={handleFaqPageChange}
+            onFaqSearchChange={handleFaqSearchChange}
+          />
         ))}
       </div>
 
-      {/* Pagination */}
+      {/* Outer Pagination (FAQ Links) */}
       {meta.total_items > PAGE_SIZE && (
-        <div className="flex justify-center space-x-4 mt-4">
+        <div className="flx justify-center items-center space-x-4 mt-8">
           <Button
             variant="outline"
             disabled={page === 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => handlePageChange(page - 1)}
+            className="tr"
           >
             Previous
           </Button>
+          <div className="flx items-center space-x-2">
+            {Array.from(
+              { length: Math.ceil(meta.total_items / PAGE_SIZE) },
+              (_, i) => i + 1
+            )
+              .filter((pageNum) => {
+                const totalPages = Math.ceil(meta.total_items / PAGE_SIZE);
+                return (
+                  pageNum === 1 ||
+                  pageNum === totalPages ||
+                  (pageNum >= page - 1 && pageNum <= page + 1)
+                );
+              })
+              .map((pageNum, index, array) => (
+                <React.Fragment key={pageNum}>
+                  {index > 0 && array[index - 1] !== pageNum - 1 && (
+                    <span className="text-muted-foreground">...</span>
+                  )}
+                  <Button
+                    variant={page === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageChange(pageNum)}
+                    className="tr"
+                  >
+                    {pageNum}
+                  </Button>
+                </React.Fragment>
+              ))}
+          </div>
           <Button
             variant="outline"
             disabled={page * PAGE_SIZE >= meta.total_items}
-            onClick={() => setPage((p) => p + 1)}
+            onClick={() => handlePageChange(page + 1)}
+            className="tr"
           >
             Next
           </Button>

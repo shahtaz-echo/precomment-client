@@ -2,12 +2,11 @@ import * as React from "react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 const DeleteDialog = ({
   title = "Are you sure?",
@@ -20,11 +19,14 @@ const DeleteDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-        <p className="my-4">{description}</p>
+      <DialogContent className="sm:max-w-[465px]">
+        <div className="bg-red-100 h-12 w-12 center rounded-full">
+          <Trash2 size={24} className="text-red-500" />
+        </div>
+
+        <h3>{title}</h3>
+
+        <p className="mb-8">{description}</p>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel

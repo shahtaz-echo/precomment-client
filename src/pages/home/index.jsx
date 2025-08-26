@@ -7,6 +7,7 @@ import { useTenantListQuery } from "@/features/tenants/tenantApiSlice";
 import { ArrowRight, Clock, Plus } from "lucide-react";
 import moment from "moment";
 import PageContainer from "@/components/container/page-container";
+import CreateClientDialog from "./create-client";
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -28,10 +29,7 @@ const Homepage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Existing Clients</h2>
-        <Button>
-          <Plus size={14} />
-          <span className="pr-1">New Client</span>
-        </Button>
+        <CreateClientDialog />
       </div>
 
       {/* Search Bar */}
@@ -62,7 +60,7 @@ const Homepage = () => {
                   <CardTitle className="capitalize">
                     {tenant.store_name}
                   </CardTitle>
-                  <p>Clothing Store</p>
+                  <p>{tenant.store_type || "Not specified"}</p>
                 </div>
                 <Link
                   to={`/tenants/${tenant?.tenant_id}`}
@@ -72,9 +70,10 @@ const Homepage = () => {
                 </Link>
               </div>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground ">
-                Placeholder description for {tenant.store_name}
+            <CardContent className="flex flex-col justify-between h-full">
+              <p className="text-sm text-muted-foreground line-clamp-3">
+                {tenant.description ||
+                  `No description provided for ${tenant.store_name}`}
               </p>
               <p className="flx gap-2 mt-4 text-xs text-gray-500">
                 <Clock size={14} />
