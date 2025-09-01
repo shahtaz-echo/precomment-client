@@ -48,8 +48,8 @@ const FetchProductDialog = () => {
 
       if (res?.success) {
         toast.success(res?.message || "Product feed fetched successfully.");
-        // setForm({ url: "", start_from: 0, end_at: 0 });
-        // setOpen(false);
+        setForm({ url: "", start_from: 0, end_at: 0 });
+        setOpen(false);
       } else {
         toast.error(
           res.error?.data?.message || "Failed to fetch product feed."

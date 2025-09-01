@@ -36,12 +36,12 @@ const CreateFAQLinkDialog = () => {
     try {
       const res = await createFAQLink({ payload: form, tenant_id }).unwrap();
 
-      if (res.data?.success) {
-        toast.success(res.data.message || "FAQ Link created successfully.");
+      if (res?.success) {
+        toast.success(res?.message || "FAQ Link created successfully.");
         setForm({ name: "", url: "", description: "" });
         setOpen(false);
       } else {
-        toast.error(res.error.data.message || "Failed to create FAQ Link.");
+        toast.error(res?.error.message || "Failed to create FAQ Link.");
       }
     } catch (err) {
       toast.error(err.data.message || "Failed to create FAQ Link.");

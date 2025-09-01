@@ -15,7 +15,7 @@ const TenantProductPage = () => {
   const [deleteProduct, { isLoading }] = useDeleteProductMutation();
 
   const handleDelete = async () => {
-    const res = await deleteProduct({ tenant_id });
+    const res = await deleteProduct({ tenant_id }).unwrap();
     if (res?.success) {
       setDeleteDialogOpen(false);
       toast.success(res?.message || "Products deleted successfully");

@@ -1,3 +1,4 @@
+import { imgMinified } from "@/lib/minified";
 import React from "react";
 import { Link } from "react-router";
 
@@ -6,7 +7,7 @@ const ProductCard = ({ data }) => {
     <Link to={data?.url} target="_blank">
       <div className="h-48 mb-4">
         <img
-          src={data?.image_url}
+          src={imgMinified(data?.image_url)}
           alt={data?.name}
           className="w-full h-full border object-contain"
         />

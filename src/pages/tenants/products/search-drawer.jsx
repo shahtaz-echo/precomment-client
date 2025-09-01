@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import { useSearchProductsMutation } from "@/features/products/productApiSlice";
+import { imgMinified } from "@/lib/minified";
 
 const ProductVectorSearchDrawer = () => {
   const { tenant_id } = useParams();
@@ -70,15 +71,11 @@ const ProductVectorSearchDrawer = () => {
           {results.length === 0 && !isLoading && (
             <p className="text-muted-foreground text-sm">No results found.</p>
           )}
-          {results.map((faq) => (
-            <div
-              key={faq.id}
-              className="p-3 rounded-lg border bg-muted/30 space-y-2"
-            >
-              <h3>{faq.question}</h3>
-              <p>{faq.answer}</p>
-            </div>
-          ))}
+          <div className="grid grid-cols-2 gap-4">
+            {results.map((product, idx) => (
+              <ProductCard key={idx} product={product} />
+            ))}
+          </div>
         </div>
       </SheetContent>
     </Sheet>
@@ -86,3 +83,41 @@ const ProductVectorSearchDrawer = () => {
 };
 
 export default ProductVectorSearchDrawer;
+
+const ProductCard = ({ product }) => {
+  return (
+    <Link
+      to={product?.url}
+      className="p-4 rounded-xl border bg-muted/30 space-y-3 shadow-sm hover:shadow-md transition"
+    >
+      {/* Image */}
+      {product.image_url ? (
+        <img
+          src={imgMinified(product.image_url)}
+          alt={product.name}
+          className="w-full h-48 object-cover rounded-lg"
+        />
+      ) : (
+        <div className="w-full h-48 flex items-center justify-center bg-gray-100 rounded-lg text-gray-400">
+          No image
+        </div>
+      )}
+
+      {/* Product Info */}
+      <div className="space-y-1">
+        <h5 className="text-xs py-1 px-2 bg-blue-100 text-blue-500 w-fit rounded-full mb-2">
+          {product.category}
+        </h5>
+        <h4>{product.name}</h4>
+        <p className="line-clamp-2">{product.description}</p>
+      </div>
+
+      {/* Reranking */}
+      <div className="flex justify-between items-center">
+        <span className="text-base font-bold">
+          {product.relevance_score.toFixed(4)}
+        </span>
+      </div>
+    </Link>
+  );
+};

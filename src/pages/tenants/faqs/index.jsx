@@ -5,11 +5,7 @@ import FAQLinks from "./faq-links";
 const TenantFaqPage = () => {
   const { tenant_id } = useParams();
 
-  return (
-    <div>
-      <FAQLinks tenant_id={tenant_id} />
-    </div>
-  );
+  return <FAQLinks tenant_id={tenant_id} />;
 };
 
 export default TenantFaqPage;
