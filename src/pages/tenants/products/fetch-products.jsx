@@ -1,4 +1,8 @@
 import * as React from "react";
+import toast from "react-hot-toast";
+import { useParams } from "react-router";
+
+// components
 import {
   Dialog,
   DialogContent,
@@ -9,49 +13,57 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Download, Plus } from "lucide-react";
-import { useCreateFAQLinkMutation } from "@/features/faqs/faqApiSlice";
-import toast from "react-hot-toast";
-import { useParams } from "react-router";
+
+// icons
+import { Download, Rocket } from "lucide-react";
+
+// hooks
+import { useFetchProductFeedMutation } from "@/features/products/productApiSlice";
 
 const FetchProductDialog = () => {
   const { tenant_id } = useParams();
   const [open, setOpen] = React.useState(false);
+
   const [form, setForm] = React.useState({
-    name: "",
     url: "",
-    description: "",
+    start_from: 0,
+    end_at: 0,
   });
 
-  const [createFAQLink, { isLoading }] = useCreateFAQLinkMutation();
+  const [fetchProductFeed, { isLoading }] = useFetchProductFeedMutation();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]:
+        name === "start_from" || name === "end_at" ? Number(value) : value,
+    }));
   };
 
   const handleCreate = async () => {
     try {
-      const res = await createFAQLink({ payload: form, tenant_id }).unwrap();
+      const res = await fetchProductFeed({ tenant_id, payload: form }).unwrap();
 
-      if (res.data?.success) {
-        toast.success(res.data.message || "FAQ Link created successfully.");
-        setForm({ name: "", url: "", description: "" });
-        setOpen(false);
+      if (res?.success) {
+        toast.success(res?.message || "Product feed fetched successfully.");
+        // setForm({ url: "", start_from: 0, end_at: 0 });
+        // setOpen(false);
       } else {
-        toast.error(res.error.data.message || "Failed to create FAQ Link.");
+        toast.error(
+          res.error?.data?.message || "Failed to fetch product feed."
+        );
       }
     } catch (err) {
-      toast.error(err.data.message || "Failed to create FAQ Link.");
-      console.error("Failed to create FAQ Link:", err);
+      toast.error(err?.data?.message || "Failed to fetch product feed.");
+      console.error("Failed to fetch product feed:", err);
     }
   };
 
   React.useEffect(() => {
     if (open) {
-      setForm({ name: "", url: "", description: "" });
+      setForm({ url: "", start_from: 0, end_at: 0 });
     }
   }, [open]);
 
@@ -59,28 +71,17 @@ const FetchProductDialog = () => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Download size={14} />
-          <span className="mr-1">Fetch From Link</span>
+          <Rocket size={14} />
+          <span className="mr-1">Product Feed</span>
         </Button>
       </DialogTrigger>
 
       <DialogContent className="lg:max-w-xl w-full">
         <DialogHeader>
-          <DialogTitle>Create FAQ Link</DialogTitle>
+          <DialogTitle>Train Product Feed</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="Enter FAQ link name"
-            />
-          </div>
-
+        <div className="space-y-8 py-2">
           <div className="space-y-2">
             <Label htmlFor="url">URL</Label>
             <Input
@@ -88,21 +89,33 @@ const FetchProductDialog = () => {
               name="url"
               value={form.url}
               onChange={handleChange}
-              placeholder="https://example.com/faqs"
+              placeholder="https://example.com/products-feed"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              placeholder="Add a description..."
-              rows={5}
-              className="min-h-24"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="start_from">Starting From</Label>
+              <Input
+                id="start_from"
+                name="start_from"
+                type="number"
+                value={form.start_from}
+                onChange={handleChange}
+                placeholder="Ex. 0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="end_at">Ending At</Label>
+              <Input
+                id="end_at"
+                name="end_at"
+                type="number"
+                value={form.end_at}
+                onChange={handleChange}
+                placeholder="Ex. 200"
+              />
+            </div>
           </div>
         </div>
 
@@ -115,7 +128,7 @@ const FetchProductDialog = () => {
             onClick={handleCreate}
             disabled={isLoading}
           >
-            {isLoading ? "Creating..." : "Create"}
+            {isLoading ? "Fetching..." : "Fetch"}
           </Button>
         </DialogFooter>
       </DialogContent>

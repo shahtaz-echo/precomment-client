@@ -15,6 +15,7 @@ const DeleteDialog = ({
   trigger,
   open,
   setOpen,
+  isLoading = false,
 }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -32,10 +33,18 @@ const DeleteDialog = ({
             Cancel
           </Button>
           <Button
-            className="bg-red-600 text-white hover:bg-red-700"
+            className="bg-red-600 text-white hover:bg-red-700 min-w-20"
             onClick={onConfirm}
           >
-            Delete
+            {isLoading ? (
+              <span className="flex space-x-1">
+                <span className="h-1.5 w-1.5 bg-white rounded-full animate-bounce"></span>
+                <span className="h-1.5 w-1.5 bg-white rounded-full animate-bounce [animation-delay:-.2s]"></span>
+                <span className="h-1.5 w-1.5 bg-white rounded-full animate-bounce [animation-delay:-.4s]"></span>
+              </span>
+            ) : (
+              "Delete"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

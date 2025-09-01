@@ -14,7 +14,6 @@ const TenantDetails = ({ tenant_id }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ Hooks must always be declared at the top level
   const { data, isLoading, isError } = useTenantDetailsQuery(
     { tenant_id },
     {
@@ -30,25 +29,35 @@ const TenantDetails = ({ tenant_id }) => {
 
   const handleDelete = async (id) => {
     try {
-      const res = await deleteTenant({ tenant_id: id }).unwrap(); // unwrap gives direct success/error
-      toast.success("Client Deleted Successfully");
-      setDeleteDialogOpen(false);
-      navigate("/");
+      const res = await deleteTenant({ tenant_id: id }).unwrap();
+      if (res.success) {
+        toast.success("Client Deleted Successfully");
+        setDeleteDialogOpen(false);
+        navigate("/");
+      }
     } catch (err) {
       toast.error("Failed to Delete Client");
     }
   };
 
   if (isLoading) {
-    return <p className="p-4">Loading tenant details...</p>;
+    return (
+      <p className="max-w-sm w-full pr-8 sticky top-16 border-r h-[80vh] pb-2 flex flex-col justify-between">
+        Loading tenant details...
+      </p>
+    );
   }
 
   if (isError) {
-    return <p className="p-4 text-red-500">Failed to load tenant details.</p>;
+    return (
+      <p className="max-w-sm w-full pr-8 sticky top-16 border-r h-[80vh] pb-2 flex flex-col justify-between text-red-500">
+        Failed to load tenant details.
+      </p>
+    );
   }
 
   return (
-    <div className="max-w-sm pr-8 sticky top-16 w-full border-r h-[80vh] pb-2 flex flex-col justify-between">
+    <div className="max-w-sm w-full pr-8 sticky top-16 border-r h-[80vh] pb-2 flex flex-col justify-between">
       <div>
         <Link to="/" className="flx gap-2">
           <img src="/public/favicon.svg" className="h-8 w-8 object-contain" />

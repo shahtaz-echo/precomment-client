@@ -1,12 +1,69 @@
-# React + Vite
+# Chatbot Dev: Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the frontend for **Chatbot Dev**, built with:
 
-Currently, two official plugins are available:
+* [React](https://react.dev/) + [Vite](https://vitejs.dev/) for fast development
+* [Tailwind CSS](https://tailwindcss.com/) for styling
+* [shadcn/ui](https://ui.shadcn.com/) for prebuilt UI components
+* [Lucide Icons](https://lucide.dev/) for crisp icons
+* [Redux Toolkit](https://redux-toolkit.js.org/) + **RTK Query** for state management and data fetching
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🚀 Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/chatbot-dev-frontend.git
+cd chatbot-dev-frontend
+```
+
+### 2. Install Node.js
+
+Download and install [Node.js](https://nodejs.org/) (LTS recommended).
+
+### 3. Install dependencies
+
+```bash
+npm install
+```
+
+### 4. Run the development server
+
+```bash
+npm run dev
+```
+
+Your app should now be running at:
+👉 [http://localhost:5173](http://localhost:5173)
+
+---
+
+## 📂 Project Structure
+
+```
+src/
+ ├─ components/     # UI components (shadcn + custom)
+ ├─ features/       # Redux slices & RTK query
+ ├─ pages/          # Page components
+ ├─ assets/         # Images, fonts, etc.
+ └─ main.tsx        # Entry point
+```
+
+---
+
+## 🛠 Available Scripts
+
+* `npm run dev` → Start local dev server
+* `npm run build` → Build production bundle
+* `npm run preview` → Preview the production build
+
+---
+
+## ⚡ Tech Stack Benefits
+
+* **React + Vite** → Lightning-fast hot reload and build times
+* **Tailwind + shadcn/ui** → Consistent, modern design system
+* **Redux Toolkit + RTK Query** → Simplified state management & API calls
+* **Lucide** → Lightweight and customizable SVG icons
