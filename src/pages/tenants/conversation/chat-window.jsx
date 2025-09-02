@@ -15,6 +15,7 @@ const ChatWindow = ({
   const messagesEndRef = useRef(null);
 
   const { tenant_id } = useParams();
+  
   useEffect(() => {
     setSessionId(conversation?.session_id || null);
   }, [conversation]);
@@ -33,11 +34,16 @@ const ChatWindow = ({
     } else {
       // Send message to existing conversation
       const payload = { user_query: text, tenant_id };
-      const response = await onSendMessage(conversation.id, payload, sessionId);
+      try {
+        const response = await onSendMessage(conversation.id, payload, sessionId);
 
-      // Update session ID if we got a new one
-      if (response?.data?.session_id && !sessionId) {
-        setSessionId(response.data.session_id);
+        // Update session ID if we got a new one
+        if (response?.data?.session_id && !sessionId) {
+          setSessionId(response.data.session_id);
+        }
+      } catch (error) {
+        // Error handling is done in the parent component
+        console.error('Failed to send message:', error);
       }
     }
   };
@@ -61,18 +67,18 @@ const ChatWindow = ({
 
   return (
     <div className="flex-1 bg-white rounded-xl border border-gray-200 flex h-full flex-col">
-      {/* Chat Header */}
-      <div className="p-4 border-b border-gray-200 flbx">
+      {/* Chat Header - Fixed the typo here */}
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
         <div>
           <h3 className="font-medium text-gray-900">{conversation.name}</h3>
           {sessionId && (
-            <p className="text-sm text-gray-500">Session: {sessionId}</p>
+            <p className="text-sm text-gray-500">Session: {sessionId.slice(0, 8)}...</p>
           )}
         </div>
 
-        <Button onClick={handleNewConversation}>
-          <Plus size={14} />
-          <span className="mr-1">New Chat</span>
+        <Button onClick={handleNewConversation} variant="outline" size="sm">
+          <Plus size={14} className="mr-1" />
+          New Chat
         </Button>
       </div>
 
@@ -106,62 +112,71 @@ const Message = ({ message }) => {
   const isError = message.type === "error";
 
   return (
-    <div
-      className={`flex ${isOutgoing ? "justify-end" : "justify-start"} mb-2`}
-    >
-      <div className="flex flex-col items-start gap-3 max-w-full">
+    <div className={`flex ${isOutgoing ? "justify-end" : "justify-start"} mb-4`}>
+      <div className="flex items-start gap-3 max-w-[80%]">
         {!isOutgoing && !isError && (
           <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
             <Bot size={16} className="text-gray-600" />
           </div>
         )}
 
-        <div
-          className={`px-3 py-2 min-w-40 rounded-lg ${
-            isOutgoing
-              ? "bg-blue-600/10 text-blue-600"
-              : isError
-              ? "bg-red-100 text-red-800 border border-red-200"
-              : "bg-gray-100 text-gray-900"
-          }`}
-        >
-          <h5 className="text-sm leading-relaxed">{message.text}</h5>
-          {message.timestamp && (
-            <span className="text-[10px] mt-1 text-gray-500 block">
-              {new Date(message.timestamp).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
+        <div className="flex flex-col gap-2">
+          <div
+            className={`px-4 py-2 rounded-lg ${
+              isOutgoing
+                ? "bg-blue-600 text-white ml-auto"
+                : isError
+                ? "bg-red-100 text-red-800 border border-red-200"
+                : "bg-gray-100 text-gray-900"
+            }`}
+          >
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.text}</p>
+            {message.timestamp && (
+              <span className={`text-xs mt-1 block ${
+                isOutgoing ? 'text-blue-100' : 'text-gray-500'
+              }`}>
+                {new Date(message.timestamp).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            )}
+          </div>
+
+          {/* Render products if any */}
+          {message.products?.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+              {message.products.map((product) => (
+                <a
+                  key={product.product_id}
+                  href={product.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 border rounded-lg hover:shadow-md transition-all duration-200 bg-white hover:border-blue-200"
+                >
+                  <img
+                    src={imgMinified(product.image_url)}
+                    alt={product.name}
+                    className="w-16 h-16 object-cover rounded flex-shrink-0"
+                  />
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-medium text-sm text-gray-900 truncate">
+                      {product.name}
+                    </span>
+                    <span className="text-xs text-gray-500 truncate">
+                      {product.category}
+                    </span>
+                    {product.price && (
+                      <span className="text-xs font-medium text-green-600 mt-1">
+                        {product.price}
+                      </span>
+                    )}
+                  </div>
+                </a>
+              ))}
+            </div>
           )}
         </div>
-
-        {/* Render products if any */}
-        {message.products?.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 mt-2">
-            {message.products.map((product) => (
-              <a
-                key={product.product_id}
-                href={product.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-2 border rounded-lg hover:shadow-md transition-shadow bg-white"
-              >
-                <img
-                  src={imgMinified(product.image_url)}
-                  alt={product.name}
-                  className="h-20  object-cover rounded"
-                />
-                <div className="flex flex-col">
-                  <span className="font-medium text-sm">{product.name}</span>
-                  <span className="text-[10px] text-gray-500">
-                    {product.category}
-                  </span>
-                </div>
-              </a>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -217,13 +232,13 @@ const MessageInput = ({ onSend, isLoading }) => {
   }, [isLoading]);
 
   return (
-    <div className="p-4 border-t border-gray-200">
+    <div className="p-4 border-t border-gray-200 bg-gray-50">
       <div className="flex gap-3">
         <input
           ref={inputRef}
           type="text"
           placeholder={isLoading ? "Sending..." : "Type a message..."}
-          className="flex-1 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+          className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500 transition-colors"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -232,10 +247,10 @@ const MessageInput = ({ onSend, isLoading }) => {
         <Button
           onClick={handleSend}
           disabled={!value.trim() || isLoading}
-          className="px-4"
-          size="lg"
+          className="px-4 py-2"
+          size="default"
         >
-          <Send size={16} />
+          <Send size={16} className="mr-1" />
           Send
         </Button>
       </div>
