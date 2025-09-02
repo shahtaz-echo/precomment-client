@@ -35,7 +35,7 @@ const ProductList = () => {
   // Debounce search input to prevent excessive API calls
   const debouncedSearch = useDebounce(search, 500); // 500ms delay
 
-  const PAGE_SIZE = 16;
+  const PAGE_SIZE = 64;
 
   // Memoize query parameters to prevent unnecessary re-renders
   const linkQueryParams = useMemo(
